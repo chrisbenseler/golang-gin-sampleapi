@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 )
 
 type Book struct {
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Title string `json:"title"`
 	Year  int    `json:"year"`
 }
 
 var books = []Book{
-	Book{Title: "The Black Swan", Year: 2010, ID: 1},
-	Book{Title: "Skin in the Game", Year: 2012, ID: 2},
+	Book{Title: "The Black Swan", Year: 2010, ID: "1"},
+	Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
 }
 
 func listBooksEndpoint(c *gin.Context) {
@@ -26,6 +27,8 @@ func createBookEndpoint(c *gin.Context) {
 	var newBook Book
 
 	if c.ShouldBind(&newBook) == nil {
+		uID := uuid.Must(uuid.NewV4())
+		newBook.ID = uID.String()
 		books = append(books, newBook)
 		c.JSON(http.StatusCreated, newBook)
 	} else {
