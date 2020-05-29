@@ -61,13 +61,20 @@ func FindBookById(a []Book, id string) (Book, error) {
 
 func updateBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	book, err := FindBookById(books, id)
+	bookIndex := FindById(books, id)
 
-	if err != nil {
+	if bookIndex == -1 {
 		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}
-	c.JSON(http.StatusOK, book)
+
+	var newBook Book
+	c.ShouldBind(&newBook)
+	newBook.ID = books[bookIndex].ID
+
+	books[bookIndex] = newBook
+
+	c.JSON(http.StatusOK, newBook)
 }
 
 func getBookEndpoint(c *gin.Context) {
