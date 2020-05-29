@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -47,15 +48,37 @@ func FindById(a []Book, id string) int {
 	return -1
 }
 
+func FindBookById(a []Book, id string) (Book, error) {
+	fmt.Println("id to search", id)
+	for _, n := range a {
+		if id == n.ID {
+			return n, nil
+		}
+	}
+	return Book{}, errors.New("No book found")
+	//	return nil
+}
+
 func updateBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	bookIndex := FindById(books, id)
+	book, err := FindBookById(books, id)
 
-	if bookIndex == -1 {
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}
-	c.JSON(http.StatusOK, books[bookIndex])
+	c.JSON(http.StatusOK, book)
+}
+
+func getBookEndpoint(c *gin.Context) {
+	id := c.Param("id")
+	book, err := FindBookById(books, id)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{})
+		return
+	}
+	c.JSON(http.StatusOK, book)
 }
 
 func main() {
@@ -67,7 +90,7 @@ func main() {
 		booksRoutes.GET("/", listBooksEndpoint)
 		booksRoutes.POST("/", createBookEndpoint)
 		booksRoutes.PUT("/:id", updateBookEndpoint)
-
+		booksRoutes.GET("/:id", getBookEndpoint)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
