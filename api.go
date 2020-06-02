@@ -3,21 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
+	"golang-gin-sampleapi/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 )
 
-type Book struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-	Year  int    `json:"year"`
-}
-
-var books = []Book{
-	Book{Title: "The Black Swan", Year: 2010, ID: "1"},
-	Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
+var books = []models.Book{
+	models.Book{Title: "The Black Swan", Year: 2010, ID: "1"},
+	models.Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
 }
 
 func listBooksEndpoint(c *gin.Context) {
@@ -25,7 +20,7 @@ func listBooksEndpoint(c *gin.Context) {
 }
 
 func createBookEndpoint(c *gin.Context) {
-	var newBook Book
+	var newBook models.Book
 
 	if c.ShouldBind(&newBook) == nil {
 		uID := uuid.Must(uuid.NewV4())
@@ -38,7 +33,7 @@ func createBookEndpoint(c *gin.Context) {
 
 }
 
-func FindById(a []Book, id string) int {
+func FindById(a []models.Book, id string) int {
 	fmt.Println("id to search", id)
 	for i, n := range a {
 		if id == n.ID {
@@ -48,14 +43,14 @@ func FindById(a []Book, id string) int {
 	return -1
 }
 
-func FindBookById(a []Book, id string) (Book, error) {
+func FindBookById(a []models.Book, id string) (models.Book, error) {
 	fmt.Println("id to search", id)
 	for _, n := range a {
 		if id == n.ID {
 			return n, nil
 		}
 	}
-	return Book{}, errors.New("No book found")
+	return models.Book{}, errors.New("No book found")
 	//	return nil
 }
 
@@ -68,7 +63,7 @@ func updateBookEndpoint(c *gin.Context) {
 		return
 	}
 
-	var newBook Book
+	var newBook models.Book
 	c.ShouldBind(&newBook)
 	newBook.ID = books[bookIndex].ID
 
@@ -77,7 +72,7 @@ func updateBookEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, newBook)
 }
 
-func RemoveBookByIndex(s []Book, index int) []Book {
+func RemoveBookByIndex(s []models.Book, index int) []models.Book {
 	return append(s[:index], s[index+1:]...)
 }
 
