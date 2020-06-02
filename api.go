@@ -7,15 +7,24 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gofrs/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var books = []models.Book{
-	models.Book{Title: "The Black Swan", Year: 2010, ID: "1"},
-	models.Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
+	//models.Book{Title: "The Black Swan", Year: 2010, ID: "1"},
+	//models.Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
 }
 
+var connection = models.Db()
+
 func listBooksEndpoint(c *gin.Context) {
+	book := &models.Book{}
+	var books = []models.Book{}
+	find := connection.Collection("books").Find(bson.M{})
+
+	for find.Next(book) {
+		books = append(books, *book)
+	}
 	c.JSON(http.StatusOK, books)
 }
 
@@ -23,9 +32,8 @@ func createBookEndpoint(c *gin.Context) {
 	var newBook models.Book
 
 	if c.ShouldBind(&newBook) == nil {
-		uID := uuid.Must(uuid.NewV4())
-		newBook.ID = uID.String()
-		books = append(books, newBook)
+
+		connection.Collection("books").Save(&newBook)
 		c.JSON(http.StatusCreated, newBook)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{})
@@ -35,8 +43,9 @@ func createBookEndpoint(c *gin.Context) {
 
 func FindById(a []models.Book, id string) int {
 	fmt.Println("id to search", id)
-	for i, n := range a {
-		if id == n.ID {
+	for i, _ := range a {
+		//if id == n.ID {
+		if id == "aaa" {
 			return i
 		}
 	}
@@ -46,7 +55,7 @@ func FindById(a []models.Book, id string) int {
 func FindBookById(a []models.Book, id string) (models.Book, error) {
 	fmt.Println("id to search", id)
 	for _, n := range a {
-		if id == n.ID {
+		if id == "aaa" {
 			return n, nil
 		}
 	}
@@ -65,7 +74,7 @@ func updateBookEndpoint(c *gin.Context) {
 
 	var newBook models.Book
 	c.ShouldBind(&newBook)
-	newBook.ID = books[bookIndex].ID
+	//newBook.ID = books[bookIndex].ID
 
 	books[bookIndex] = newBook
 
