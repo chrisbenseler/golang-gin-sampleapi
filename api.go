@@ -77,6 +77,24 @@ func updateBookEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, newBook)
 }
 
+func RemoveBookByIndex(s []Book, index int) []Book {
+	return append(s[:index], s[index+1:]...)
+}
+
+func deleteBookEndpoint(c *gin.Context) {
+	id := c.Param("id")
+	bookIndex := FindById(books, id)
+
+	if bookIndex == -1 {
+		c.JSON(http.StatusNotFound, gin.H{})
+		return
+	}
+
+	books = RemoveBookByIndex(books, bookIndex)
+
+	c.JSON(http.StatusNoContent, gin.H{})
+}
+
 func getBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
 	book, err := FindBookById(books, id)
@@ -98,6 +116,7 @@ func main() {
 		booksRoutes.POST("/", createBookEndpoint)
 		booksRoutes.PUT("/:id", updateBookEndpoint)
 		booksRoutes.GET("/:id", getBookEndpoint)
+		booksRoutes.DELETE("/:id", deleteBookEndpoint)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
