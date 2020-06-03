@@ -52,7 +52,6 @@ func FindById(a []models.Book, id string) int {
 }
 
 func FindBookByID(id string) (models.Book, error) {
-	fmt.Println("id to search", id)
 	book := &models.Book{}
 	err := connection.Collection("books").FindById(bson.ObjectIdHex(id), book)
 	return *book, err
@@ -75,20 +74,20 @@ func updateBookEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, newBook)
 }
 
-func RemoveBookByIndex(s []models.Book, index int) []models.Book {
-	return append(s[:index], s[index+1:]...)
+func RemoveBookByID(id string) error {
+	err := connection.Collection("books").DeleteOne(bson.M{"_id": bson.ObjectIdHex(id)})
+	return err
 }
 
 func deleteBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	bookIndex := FindById(books, id)
 
-	if bookIndex == -1 {
-		c.JSON(http.StatusNotFound, gin.H{})
+	err := RemoveBookByID(id)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err})
 		return
 	}
-
-	books = RemoveBookByIndex(books, bookIndex)
 
 	c.JSON(http.StatusNoContent, gin.H{})
 }
