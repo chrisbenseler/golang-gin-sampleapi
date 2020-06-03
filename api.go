@@ -1,19 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"golang-gin-sampleapi/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	//"go.mongodb.org/mongo-driver/bson"
 	"github.com/globalsign/mgo/bson"
 )
-
-var books = []models.Book{
-	//models.Book{Title: "The Black Swan", Year: 2010, ID: "1"},
-	//models.Book{Title: "Skin in the Game", Year: 2012, ID: "2"},
-}
 
 var connection = models.Db()
 
@@ -40,17 +33,6 @@ func createBookEndpoint(c *gin.Context) {
 
 }
 
-func FindById(a []models.Book, id string) int {
-	fmt.Println("id to search", id)
-	for i, _ := range a {
-		//if id == n.ID {
-		if id == "aaa" {
-			return i
-		}
-	}
-	return -1
-}
-
 func FindBookByID(id string) (models.Book, error) {
 	book := &models.Book{}
 	err := connection.Collection("books").FindById(bson.ObjectIdHex(id), book)
@@ -59,19 +41,15 @@ func FindBookByID(id string) (models.Book, error) {
 
 func updateBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	bookIndex := FindById(books, id)
-
-	if bookIndex == -1 {
-		c.JSON(http.StatusNotFound, gin.H{})
-		return
-	}
-
 	var newBook models.Book
-	c.ShouldBind(&newBook)
 
-	books[bookIndex] = newBook
-
-	c.JSON(http.StatusOK, newBook)
+	if c.ShouldBind(&newBook) == nil {
+		newBook.SetId(bson.ObjectIdHex(id))
+		connection.Collection("books").Save(&newBook)
+		c.JSON(http.StatusCreated, newBook)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	}
 }
 
 func RemoveBookByID(id string) error {
