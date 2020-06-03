@@ -1,13 +1,13 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"golang-gin-sampleapi/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
+	//"go.mongodb.org/mongo-driver/bson"
+	"github.com/globalsign/mgo/bson"
 )
 
 var books = []models.Book{
@@ -32,7 +32,6 @@ func createBookEndpoint(c *gin.Context) {
 	var newBook models.Book
 
 	if c.ShouldBind(&newBook) == nil {
-
 		connection.Collection("books").Save(&newBook)
 		c.JSON(http.StatusCreated, newBook)
 	} else {
@@ -52,15 +51,11 @@ func FindById(a []models.Book, id string) int {
 	return -1
 }
 
-func FindBookById(a []models.Book, id string) (models.Book, error) {
+func FindBookByID(id string) (models.Book, error) {
 	fmt.Println("id to search", id)
-	for _, n := range a {
-		if id == "aaa" {
-			return n, nil
-		}
-	}
-	return models.Book{}, errors.New("No book found")
-	//	return nil
+	book := &models.Book{}
+	err := connection.Collection("books").FindById(bson.ObjectIdHex(id), book)
+	return *book, err
 }
 
 func updateBookEndpoint(c *gin.Context) {
@@ -74,7 +69,6 @@ func updateBookEndpoint(c *gin.Context) {
 
 	var newBook models.Book
 	c.ShouldBind(&newBook)
-	//newBook.ID = books[bookIndex].ID
 
 	books[bookIndex] = newBook
 
@@ -101,10 +95,10 @@ func deleteBookEndpoint(c *gin.Context) {
 
 func getBookEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	book, err := FindBookById(books, id)
+	book, err := FindBookByID(id)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{})
+		c.JSON(http.StatusNotFound, gin.H{"error": err})
 		return
 	}
 	c.JSON(http.StatusOK, book)
