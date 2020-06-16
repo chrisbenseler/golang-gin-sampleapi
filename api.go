@@ -1,9 +1,11 @@
 package main
 
 import (
-	"golang-gin-sampleapi/models"
+	"errors"
 	"net/http"
+	"strings"
 
+	"./models"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
 )
@@ -81,13 +83,36 @@ func getBookEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, book)
 }
 
+func TokenAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authorizationHeader := c.Request.Header.Get("Authorization")
+
+		if authorizationHeader == "" {
+			c.JSON(http.StatusUnauthorized, errors.New("Not authenticated"))
+			c.Abort()
+			return
+		}
+
+		token := "111"
+
+		if strings.Split(authorizationHeader, "Bearer ")[1] == token {
+			c.Next()
+		} else {
+			c.JSON(http.StatusUnauthorized, errors.New("Not authorized"))
+			c.Abort()
+			return
+		}
+
+	}
+}
+
 func main() {
 
 	router := gin.Default()
 
 	booksRoutes := router.Group("/books")
 	{
-		booksRoutes.GET("/", listBooksEndpoint)
+		booksRoutes.GET("/", TokenAuthMiddleware(), listBooksEndpoint)
 		booksRoutes.POST("/", createBookEndpoint)
 		booksRoutes.PUT("/:id", updateBookEndpoint)
 		booksRoutes.GET("/:id", getBookEndpoint)
