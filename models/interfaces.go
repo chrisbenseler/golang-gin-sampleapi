@@ -8,3 +8,8 @@ type Book struct {
 	Title string `json:"title"`
 	Year  int    `json:"year"`
 }
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}

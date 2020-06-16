@@ -107,7 +107,36 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 }
 
 func signinEndpoint(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	users := []models.User{
+		{
+			Name:     "teste",
+			Password: "teste",
+		},
+	}
+
+	var signinUser models.User
+
+	if err := c.ShouldBindJSON(&signinUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	println(signinUser.Name, signinUser.Password)
+
+	isAuth := false
+	for _, n := range users {
+		println(n.Name)
+		if signinUser.Name == n.Name && signinUser.Password == n.Password {
+			isAuth = true
+		}
+	}
+
+	if isAuth == true {
+		c.JSON(http.StatusOK, gin.H{"token": token})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{})
+	}
+
 }
 
 func main() {
