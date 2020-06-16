@@ -83,6 +83,8 @@ func getBookEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, book)
 }
 
+var token = "111"
+
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorizationHeader := c.Request.Header.Get("Authorization")
@@ -92,8 +94,6 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		token := "111"
 
 		if strings.Split(authorizationHeader, "Bearer ")[1] == token {
 			c.Next()
@@ -106,9 +106,15 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+func signinEndpoint(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
 func main() {
 
 	router := gin.Default()
+
+	router.POST("/signin", signinEndpoint)
 
 	booksRoutes := router.Group("/books")
 	{
